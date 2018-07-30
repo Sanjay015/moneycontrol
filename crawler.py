@@ -79,6 +79,7 @@ class CrawlHandler(tornado.web.RequestHandler):
     def get_bucket(self, value):
         """
         Method to put data into relavant bucket.
+        Classify P/E Ratio in bucket.
         """
         if value in ['null', 'NULL', '', None]:
             return 'null'
@@ -223,6 +224,30 @@ class CrawlHandler(tornado.web.RequestHandler):
         self.write("Fetching results for: {}\n".format(url))
 
 
+class InsightHandler(tornado.web.RequestHandler):
+    """InsightHandler to get insight as per requirement."""
+
+    def nth_highest_company(self):
+        """
+        Get nth highest company from database.
+        """
+        pass
+
+    def pe_ratio_interval(self):
+        """
+        Get company list in against each `bucket`.
+        """
+        pass
+
+    def get(self):
+        """
+        Write data to page.
+        """
+        with DBManagement() as dbmanager:
+            query = config.GET_COMPANY_LIST.format(config.DATABASE_NAME)
+            company_list = pd.read_sql(query, dbmanager.conn_str)
+            self.write(company_list.to_html())
+
 def setup_logger():
     """
     A method to setup logger
@@ -253,6 +278,7 @@ def run_app():
     """
     return tornado.web.Application([
         (r"/", CrawlHandler),
+        (r"/insight/", InsightHandler),
     ])
 
 if __name__ == "__main__":

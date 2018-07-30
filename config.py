@@ -83,5 +83,13 @@ UPDATE_COMPANY_DATA = """
     where company_name = '{company_name}'
     """
 
+# Query to get nth or highest values from database.
+GET_NTH_HIGHEST = """
+    SELECT * FROM (SELECT @row_number := @row_number + 1 row_number,
+    company.market_cap_rs_cr, company.pc, company.pe
+    FROM `moneycontrol`.`company_data` company,
+    (SELECT @row_number := 0) b ORDER BY market_cap_rs_cr DESC) company_sub_query
+    WHERE company_sub_query.row_number in(3, 4)
+    """
 # List of companies for which we should be able to insert data
 COMPANY_LIST = ('3mindia', '8kmilessoftwareservices', 'aartiindustries', 'abanoffshore', 'abbindia', 'abbottindia', 'acc', 'adanienterprises', 'adaniportsspecialeconomiczone', 'adanipower', 'adanitransmission', 'adityabirlafashionretail', 'advancedenzymetechnologies', 'aegislogistics', 'aiaengineering', 'ajantapharma', 'akzonobelindia', 'alembicpharmaceuticals', 'alkemlaboratories', 'allahabadbank', 'allcargologistics', 'amararajabatteries', 'ambujacements', 'andhrabank', 'aparindustries', 'aplapollotubes', 'apollohospitalsenterprises', 'apollotyres', 'arvind', 'asahiindiaglass', 'ashokleyland', 'ashokabuildcon', 'asianpaints', 'astramicrowaveproducts', 'astralpolytechnik', 'astrazenecapharma', 'atul', 'aurobindopharma', 'avantifeeds', 'avenuesupermarts', 'axisbank', 'bajajauto', 'bajajcorp', 'bajajelectricals', 'bajajfinance', 'bajajfinserv', 'bajajhindusthan', 'bajajholdingsinvestment', 'balkrishnaindustries', 'balmerlawriecompany')
