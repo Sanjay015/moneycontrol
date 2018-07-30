@@ -223,7 +223,6 @@ class CrawlHandler(tornado.web.RequestHandler):
             # Connecting to company's url.
             http_client.fetch(url, self.get_data)
             urls = urls + '\n' + url + '\n'
-        print('===========', urls)
         self.write("Fetching results for below URLs:- \n{}".format(urls))
 
 
