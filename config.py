@@ -26,14 +26,15 @@ TABLE_CREATE_QUERY = """
     `company_title` varchar(200) not null primary key,
     `company_sector` varchar(200) null,
     `company_url` varchar(2000) null,
-    `market_cap_rs_cr` float null,
-    `pe` float null,
-    `book_value_rs` float null,
-    `eps_ttm` float null,
-    `face_value_rs` float null,
-    `industry_pe` float null,
-    `pc` float null,
-    `pricebook` float null,
+    `pe_bucket` varchar(2000) null,
+    `market_cap_rs_cr` float(6) null,
+    `pe` float(6) null,
+    `book_value_rs` float(6) null,
+    `eps_ttm` float(6) null,
+    `face_value_rs` float(6) null,
+    `industry_pe` float(6) null,
+    `pc` float(6) null,
+    `pricebook` float(6) null,
     `updated_on` datetime null
     ) engine = innodb default character set = utf8"""
 
@@ -69,6 +70,7 @@ INSERT_UPDATE_COMPANY_LIST = """
 UPDATE_COMPANY_DATA = """
     update `{schema}`.`company_data`
     set
+    pe_bucket='{pe_bucket}',
     market_cap_rs_cr={market_cap_rs_cr},
     pe={pe},
     book_value_rs={book_value_rs},

@@ -10,6 +10,7 @@ import requests
 import argparse
 import sqlalchemy
 import tornado.web
+import numpy as np
 import pandas as pd
 import tornado.ioloop
 from datetime import datetime
@@ -75,6 +76,21 @@ class CrawlHandler(tornado.web.RequestHandler):
         regex = re.findall(pattern, strnum)
         return float(regex[0].replace(',', '')) if regex else 'null'
 
+    def get_bucket(self, value):
+        """
+        Method to put data into relavant bucket.
+        """
+        if value in ['null', 'NULL', '', None]:
+            return 'null'
+        if value < 0:
+            return '<0'
+        if value > 100:
+            return '100+'
+        number_of_bins = 20
+        bins = np.linspace(0, 100, number_of_bins + 1)
+        pos = np.digitize(value, bins).item()
+        return "{}-{}".format(int(bins[pos - 1]), int(bins[pos]))
+
     def get_company_url(self, dbmanager):
         """
         Get the lists of companies and push them to database table.
@@ -120,8 +136,16 @@ class CrawlHandler(tornado.web.RequestHandler):
         logger = logging.getLogger('MONEYCONTROLAPP')
         # Parsing html content.
         soup = BeautifulSoup(content, 'html.parser')
-        divs = soup.find('div', {'id': 'mktdet_1'})
-        divs = divs.find_all('div', {'class': 'PA7 brdb'})
+        # Get div which contains company's stats.
+        div = soup.find('div', {'id': 'mktdet_1'})
+        # In some cases 'id': 'mktdet_1' is hidden and in some cases.
+        # 'id': 'mktdet_2' is hidden. Making sure that we are
+        # fetching data from correct id.
+        divstyle = div.get('style') or ''
+        if 'display:none;' in divstyle.replace(' ', ''):
+            div = soup.find('div', {'id': 'mktdet_2'})
+        # Find all relevant tags.
+        divs = div.find_all('div', {'class': 'PA7 brdb'})
         row = {}
         # List of required columns which should pushed to DB.
         requiered_columns = ['book_value_rs', 'eps_ttm', 'face_value_rs', 'industry_pe',
@@ -136,7 +160,10 @@ class CrawlHandler(tornado.web.RequestHandler):
                 name = name.replace(' ', '_').replace('%', '').replace('/', '')
                 # Add only required columns.
                 if name in requiered_columns:
-                    row[name] = self.parse_number(value.get_text())
+                    value = self.parse_number(value.get_text())
+                    if name == 'pe':
+                        row['pe_bucket'] = self.get_bucket(value)
+                    row[name] = value
         # Maintaining dict to format the query
         row['updated_on'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         row['company_name'] = company_name
@@ -144,8 +171,9 @@ class CrawlHandler(tornado.web.RequestHandler):
         # Connect to db and update the records
         with DBManagement() as dbmanager:
             # Updating stats for company in table.
+            query = config.UPDATE_COMPANY_DATA.format(**row)
             try:
-                dbmanager.conn.execute(config.UPDATE_COMPANY_DATA.format(**row))
+                dbmanager.conn.execute(query)
             except Exception as ex:
                 logger.error('Failed to execute query {} due to {}'.format(query.replace('\n', ' '), ex.args))
 
@@ -187,6 +215,7 @@ class CrawlHandler(tornado.web.RequestHandler):
 
         # Making async http call to fetch companies stats without http request block.
         http_client = httpclient.AsyncHTTPClient()
+        # ['http://www.moneycontrol.com/india/stockpricequote/financeinvestments/bajajfinserv/BF04']
         for url in company_list['company_url'].dropna().unique().tolist():
             logger.debug('Navigating to {}'.format(url))
             # Connecting to company's url.
