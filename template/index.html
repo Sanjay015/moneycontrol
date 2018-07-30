@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Moneycontrol App</title>
+ <!-- Latest compiled and minified CSS -->
+  <link href="/static/bootstrap-3.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- jQuery library -->
+  <script src="/static/js/jquery.min.js"></script>
+
+  <!-- Latest compiled JavaScript -->
+  <script src="/static/bootstrap-3.3.7/dist/js/bootstrap.min.js"></script>
+  <style type="text/css">
+    .header{background-color: #ccc; text-align: center;}
+  </style>
+</head>
+<body>
+  <!-- Top nav bar -->
+  <nav class="navbar navbar-default">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <span class="navbar-brand glyphicon glyphicon-home"></span>
+      </div>
+      <div class="navbar-header">
+        <a class="navbar-brand" href="/">Moneycontrol App - Visual Representation</a>
+      </div>
+    </div>
+  </nav>
+  <!-- Top nav bar ends-->
+
+  <!-- Layout -->
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-12 col-lg-12 col-sm-12 col-xs-12">
+        <div class="col-md-6 col-lg-6 col-sm-6 col-xs-6">
+          <div class="col-md-12 col-lg-12 col-sm-12 col-xs-12 header">
+            <h4>Top Nth highest market cap companies sector wise</h4>
+          </div>
+          <div id="nth"></div>
+        </div>
+
+        <div class="col-md-6 col-lg-6 col-sm-6 col-xs-6">
+          <div class="col-md-12 col-lg-12 col-sm-12 col-xs-12 header"><h4>P/E Ratios Intervals</h4></div>
+          <div id="peratio"></div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+  <!-- Layout ends-->
+
+  <!-- Nth template -->
+  <script type="text/html" id="topnth">
+    <table class="table table-bordered table-condensed table-striped">
+      <thead>
+        <tr>
+          <th>Company Sector</th>
+          <th>Market Cap</th>
+          <th>Company Rank</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% _.each(data, function(d, i){ %>
+          <tr>
+            <td><%= d['company_sector'] %></td>
+            <td><%= d['market_cap_rs_cr'] %></td>
+            <td><%= d['row_number'] %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </script>
+  <!-- Nth template ends -->
+
+  <!-- P/E Ratio template -->
+  <script type="text/html" id="pe_ratio">
+    <table class="table table-bordered table-condensed table-striped">
+      <thead>
+        <tr>
+          <th>P/E Bucket</th>
+          <th>Total Comanies</th>
+          <th>Company Names</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% _.each(data, function(d, i){ %>
+          <tr>
+            <td><%= d['pe_bucket'] %></td>
+            <td><%= d['total_comany'] %></td>
+            <td><%= d['company_title'] %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </script>
+  <!-- P/E Ratio template ends -->
+
+  <script src="/static/js/underscore-min.js"></script>
+  <script type="text/javascript">
+    $.ajax({
+      url: "/insight/",
+      method: 'GET'
+    }).done(function(content){
+      // Parsing result if required
+      content = (typeof(content) === 'string') ? JSON.parse(content):content;
+      // Creating templte for nth
+      var template = $("script#topnth").html();
+      var nth_tmpl = _.template(template)
+      $("#nth").html(nth_tmpl({data: content['nth']}));
+      // Creating templte for pe_ratio
+      var template = $("script#pe_ratio").html();
+      var nth_tmpl = _.template(template)
+      $("#peratio").html(nth_tmpl({data: content['pe_ratio']}));
+
+    }).fail(function(xhr, textStatus, errorThrown){
+      $("#nth, #peratio").append('<div class="alert alert-danger"><strong>' + xhr.status + ' : ' + xhr.statusText + '</strong></div>')
+    });
+  </script>
+</body>
+</html>

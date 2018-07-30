@@ -4,6 +4,7 @@ Crawler module for money control.
 import os
 import re
 import sys
+import json
 import config
 import logging
 import requests
@@ -216,37 +217,91 @@ class CrawlHandler(tornado.web.RequestHandler):
 
         # Making async http call to fetch companies stats without http request block.
         http_client = httpclient.AsyncHTTPClient()
-        # ['http://www.moneycontrol.com/india/stockpricequote/financeinvestments/bajajfinserv/BF04']
+        urls = ''
         for url in company_list['company_url'].dropna().unique().tolist():
             logger.debug('Navigating to {}'.format(url))
             # Connecting to company's url.
             http_client.fetch(url, self.get_data)
-        self.write("Fetching results for: {}\n".format(url))
+            urls = urls + '\n' + url + '\n'
+        print('===========', urls)
+        self.write("Fetching results for below URLs:- \n{}".format(urls))
 
 
 class InsightHandler(tornado.web.RequestHandler):
     """InsightHandler to get insight as per requirement."""
 
-    def nth_highest_company(self):
+    def get_values(self, group):
+        """
+        Get concat list of series.
+        """
+        return ','.join(group.dropna().unique().tolist())
+
+    def nth_highest_company(self, params, conn_str):
         """
         Get nth highest company from database.
         """
-        pass
+        query = config.GET_NTH_HIGHEST.format(**params)
+        return pd.read_sql(query, conn_str).to_dict(orient='records')
 
-    def pe_ratio_interval(self):
+    def pe_ratio_interval(self, params, conn_str):
         """
         Get company list in against each `bucket`.
         """
-        pass
+        query = config.PE_RATIO.format(**params)
+        df = pd.read_sql(query, conn_str)
+        df['pe_bucket'] = df['pe_bucket'].fillna('NA')
+        df.loc[df['pe_bucket'] == 'null', 'pe_bucket'] = 'NA'
+        df['total_comany'] = 1
+        df = df.groupby(['pe_bucket'], as_index=False).agg(
+            {'company_title': self.get_values, 'total_comany': 'sum'})
+        return df.to_dict(orient='records')
 
     def get(self):
         """
         Write data to page.
         """
         with DBManagement() as dbmanager:
-            query = config.GET_COMPANY_LIST.format(config.DATABASE_NAME)
-            company_list = pd.read_sql(query, dbmanager.conn_str)
-            self.write(company_list.to_html())
+            params = {'schema': config.DATABASE_NAME, 'n_top': config.GET_NTOP}
+            data = {}
+            data['nth'] = self.nth_highest_company(params, dbmanager.conn_str)
+            data['pe_ratio'] = self.pe_ratio_interval(params, dbmanager.conn_str)
+            self.write(json.dumps(data))
+
+
+class MainHandler(tornado.web.RequestHandler):
+    """
+    Main handler to show output on web page.
+    """
+    def get(self):
+        self.render("index.html")
+
+
+class HomePageHandler(tornado.web.RequestHandler):
+    """
+    Default home page handler.
+    """
+    def get(self):
+        self.render("home.html")
+
+
+class Application(tornado.web.Application):
+    """
+    Web Application setup handler.
+    """
+    def __init__(self):
+        root_path = os.path.dirname(__file__)
+        handlers = [
+            (r"/", HomePageHandler),
+            (r"/main/", MainHandler),
+            (r"/insight/", InsightHandler),
+            (r"/crawl/", CrawlHandler),
+        ]
+        settings = {
+            "template_path": os.path.join(root_path, 'template'),
+            "static_path": os.path.join(root_path, 'static'),
+        }
+        tornado.web.Application.__init__(self, handlers, **settings)
+
 
 def setup_logger():
     """
@@ -271,23 +326,13 @@ def setup_logger():
     file_handler.setFormatter(logger_fmt)
     logger.addHandler(file_handler)
 
-
-def run_app():
-    """
-    Start crawler app.
-    """
-    return tornado.web.Application([
-        (r"/", CrawlHandler),
-        (r"/insight/", InsightHandler),
-    ])
-
 if __name__ == "__main__":
     setup_logger()
     # Get app port number from command line argument
     parser = argparse.ArgumentParser(description='Process argument parsers.')
     parser.add_argument('-p', '--port', default='8888', help='Enter port number.')
     args = parser.parse_args()
-    app = run_app()
+    app = Application()
     app.listen(int(args.port))
     logger = logging.getLogger('MONEYCONTROLAPP')
     logger.info('Started running moneycontrol crawler app at port {}. Press Ctrl+C to close the server.'.format(args.port))

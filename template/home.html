@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Moneycontrol App</title>
+ <!-- Latest compiled and minified CSS -->
+  <link href="/static/bootstrap-3.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- jQuery library -->
+  <script src="/static/js/jquery.min.js"></script>
+  <!-- Latest compiled JavaScript -->
+  <script src="/static/bootstrap-3.3.7/dist/js/bootstrap.min.js"></script>
+</head>
+<body>
+  <!-- Top nav bar -->
+  <nav class="navbar navbar-default">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <span class="navbar-brand glyphicon glyphicon-home"></span>
+      </div>
+      <div class="navbar-header">
+        <a class="navbar-brand" href="/">Moneycontrol App - Home Page</a>
+      </div>
+    </div>
+  </nav>
+  <!-- Top nav bar ends-->
+
+  <!-- Layout -->
+  <div class="container-fluid">
+    <div class="row container-fluid">
+      <div class="alert alert-info col-md-12 col-lg-12 col-sm-12 col-xs-12">
+        This app is runnig on <strong>Tornado</strong> web server, using <strong>MySQL</strong> database in backend to store data and <strong>Python</strong> is being used for data processing/cleaning/analysis.
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12 col-lg-12 col-sm-12 col-xs-12">
+        <div class="col-md-6 col-lg-6 col-sm-6 col-xs-6">
+          <div class="col-md-12 col-lg-12 col-sm-12 col-xs-12">
+            <button class="btn btn-md btn-primary nthoutput" style="width: 100%;">
+              Click Here - To run <strong>Moneycontrol Crawler</strong>
+            </button>
+            <div class="col-md-12 col-lg-12 col-sm-12 col-xs-12" style="padding-top: 2%;">
+              <li>
+                Once you click to the above link it will redirect to url <strong>/crawl/</strong>.
+              </li>
+              <li>
+                It will create database schema and table if required.
+              </li>
+              <li>
+                It will set the rule to the table that no data can be inserted apart from a predefined company list.
+              </li>
+              <li>
+                Please refere <strong>COMPANY_LIST</strong> variable in <strong>config.py</strong> for predefined list of company.
+              </li>
+              <li>
+                First it will push the companies list along with url to the database. Then it will iterate over each company and hit the relavant url in <strong> Async</strong> mode.
+              </li>
+              <li>
+                Once gets the response from the company url it will create <strong>bucket</strong> for <strong>P/E Ratio</strong> and will update the relavant columns in table for the respective company.
+              </li>
+              <li>
+                Using <strong>BeautifulSoup</strong> python module to process html content.
+              </li>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6 col-lg-6 col-sm-6 col-xs-6">
+          <div class="col-md-12 col-lg-12 col-sm-12 col-xs-12">
+            <button class="btn btn-md btn-primary output" style="width: 100%;">
+              Click Here - To see <strong>Table Representation</strong> of data as per <strong>Requirement</strong>
+            </button>
+            <div class="col-md-12 col-lg-12 col-sm-12 col-xs-12" style="padding-top: 2%;">
+              <li>
+                Once you clicked on above link it will redirect to the url <strong>/main/</strong> to show tabular representation of data as per requiremt.
+              </li>
+              <li>
+                Data is stored in <strong>MySQL</strong> database in backend.
+              </li>
+              <li>
+                Using <strong>sqlalchemy</strong> python module to connect with database.
+              </li>
+              <li>
+                Database related configuration like username/password/host/port/schema can get configured in <strong>config.py</strong> file.
+              </li>
+              <li>
+                Database queries are alseo stored in <strong>config.py</strong> module.
+              </li>
+              <li>
+                Using <srtong>pandas</srtong> to create DataFrame and perform data manipulation from database.
+              </li>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Layout ends-->
+  <script type="text/javascript">
+    $(document).on('click', '.output', function(){
+      location.href = '/main/'
+    })
+
+    $(document).on('click', '.nthoutput', function(){
+      location.href = '/crawl/'
+    })
+  </script>
+</body>
+</html>

@@ -84,12 +84,18 @@ UPDATE_COMPANY_DATA = """
     """
 
 # Query to get nth or highest values from database.
+GET_NTOP = (3, 4)
 GET_NTH_HIGHEST = """
-    SELECT * FROM (SELECT @row_number := @row_number + 1 row_number,
-    company.market_cap_rs_cr, company.pc, company.pe
-    FROM `moneycontrol`.`company_data` company,
-    (SELECT @row_number := 0) b ORDER BY market_cap_rs_cr DESC) company_sub_query
-    WHERE company_sub_query.row_number in(3, 4)
+    SELECT * FROM(SELECT @row_number := @row_number + 1 row_number,
+    company_sub_query.company_sector, company_sub_query.market_cap_rs_cr
+    FROM (SELECT company_sector, sum(market_cap_rs_cr) as market_cap_rs_cr FROM
+    `{schema}`.`company_data` GROUP BY company_sector) company_sub_query,
+    (SELECT @row_number := 0) B ORDER BY
+    company_sub_query.market_cap_rs_cr DESC) result_query
+    WHERE result_query.row_number IN {n_top}
     """
+# Query to get PE_RATION DATA
+PE_RATIO = """SELECT company_title, pe_bucket FROM `{schema}`.`company_data`"""
+
 # List of companies for which we should be able to insert data
 COMPANY_LIST = ('3mindia', '8kmilessoftwareservices', 'aartiindustries', 'abanoffshore', 'abbindia', 'abbottindia', 'acc', 'adanienterprises', 'adaniportsspecialeconomiczone', 'adanipower', 'adanitransmission', 'adityabirlafashionretail', 'advancedenzymetechnologies', 'aegislogistics', 'aiaengineering', 'ajantapharma', 'akzonobelindia', 'alembicpharmaceuticals', 'alkemlaboratories', 'allahabadbank', 'allcargologistics', 'amararajabatteries', 'ambujacements', 'andhrabank', 'aparindustries', 'aplapollotubes', 'apollohospitalsenterprises', 'apollotyres', 'arvind', 'asahiindiaglass', 'ashokleyland', 'ashokabuildcon', 'asianpaints', 'astramicrowaveproducts', 'astralpolytechnik', 'astrazenecapharma', 'atul', 'aurobindopharma', 'avantifeeds', 'avenuesupermarts', 'axisbank', 'bajajauto', 'bajajcorp', 'bajajelectricals', 'bajajfinance', 'bajajfinserv', 'bajajhindusthan', 'bajajholdingsinvestment', 'balkrishnaindustries', 'balmerlawriecompany')
