@@ -1,0 +1,6 @@
+numpy==1.13.3
+pandas==0.20.3
+tornado==4.5.2
+requests==2.18.4
+bs4==4.6.0
+sqlalchemy==1.1.13
