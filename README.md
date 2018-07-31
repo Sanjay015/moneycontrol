@@ -20,6 +20,7 @@ This is an application to pull data from [moneycontrol](https://www.moneycontrol
      - json
      - datetime
      - re - 2.2.1
+     - Run `pip -r install requirements.txt` to install dependencies
      ###### JavaScript and CSS required pachages are already pushed to this repo:
      - Bootstrap - 3.3.7
      - UnderscoreJS - 1.9.1
