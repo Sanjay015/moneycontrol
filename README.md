@@ -4,8 +4,9 @@ This is an application to pull data from [moneycontrol](https://www.moneycontrol
 - To run this application you must have to connected to `internet`.
 - There is a predefined list of companies (please see `COMPANY_LIST` in `config.py`) only feor them data can be pushed to database.
 - It will connect [moneycontrol](https://www.moneycontrol.com/india/stockpricequote/) and get the list of companies available there and pull the data only for predefined companies in `config.py`.
-- In very forst run of application will fetch the list of companies along with relavant URL and push them to database. In this step it will be able to get comapny name, company sector and URL for the company which holds the actual stats for the company. Then it will hit the URLs of companies and process the data, then it will update other relavant columns in database like `pe`, `pc`, `market_cap_ce` etc.
-- In case if company list is already available the it will get the companies URL from database and ge there relavant stats and will update the database columns.
+- In very first run of application will fetch the list of companies along with relavant URL and push them to database. In this step it will be able to get comapny name, company sector and ompany URL which holds the actual stats for the company.
+- Then it will iterate over URL for each company to fetch the stats and will update other relavant stats columns in database like `pe`, `pc`, `market_cap_ce` etc.
+- In case if company URL is already available in DB then it will get relavant stats from the company URL and will update the records.
  ##### Requirements:
    - MySQL database to store data
    - `mysql+mysqldb` sqlalchemy database driver
